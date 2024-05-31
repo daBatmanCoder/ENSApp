@@ -27,6 +27,9 @@ const searchButton = document.getElementById('search-button');
 const resultDiv = document.getElementById('result');
 const signButton = document.getElementById('sign-button');
 const signatureDiv = document.getElementById('signature');
+const passwordInput = document.getElementById('password-input');
+const verifyButton = document.getElementById('verify-button');
+const verifyResultDiv = document.getElementById('verify-result');
 
 searchButton.addEventListener('click', async () => {
     const ensDomain = ensInput.value;
@@ -57,7 +60,38 @@ signButton.addEventListener('click', async () => {
   try {
     const signature = await web3.eth.personal.sign(ensDomain, accounts[0]);
     signatureDiv.textContent = `Signature: ${signature}`;
+    verifyButton.disabled = false;
   } catch (error) {
     signatureDiv.textContent = `Error: ${error.message}`;
+    verifyButton.disabled = true;
   }
 });
+
+verifyButton.addEventListener('click', async () => {
+    const ensDomain = ensInput.value;
+    const signature = signatureDiv.textContent.replace('Signature: ', '');
+    const password = passwordInput.value;
+  
+    const requestData = {
+      ens_message: ensDomain,
+      signature: signature,
+      password: password
+    };
+
+    console.log(requestData);  
+  
+    try {
+      const response = await fetch('https://us-central1-arnacon-nl.cloudfunctions.net/verifyENS', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+  
+      const responseData = await response.text();
+      verifyResultDiv.textContent = responseData
+    } catch (error) {
+      verifyResultDiv.textContent = `Error: ${error.message}`;
+    }
+  });

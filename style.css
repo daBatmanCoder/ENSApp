@@ -38,7 +38,7 @@ body {
   align-items: center;
   width: 20px;
   height: 20px;
-  background-color: green; /* Green for connected, red for disconnected below */
+  background-color: lightskyblue; /* Green for connected, red for disconnected below */
   border-radius: 50%;
   margin: 10px auto;  /* Centers the dot and adds space around */
 }
@@ -56,7 +56,7 @@ input[type="text"], input[type="password"] {
 }
 
 button {
-  background-color: #4CAF50;
+  background-color: blue;
   color: white;
   padding: 8px 16px;
   border: none;

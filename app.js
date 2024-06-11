@@ -4,6 +4,17 @@ let accounts;
 // Connect to MetaMask
 const connectButton = document.getElementById('connect-button');
 const connectStatus = document.getElementById('connect-status');
+let session_id;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+
+  if (sessionId) {
+    session_id = sessionId;
+  } 
+
+});
 
 connectButton.addEventListener('click', async () => {
   if (window.ethereum) {
@@ -13,6 +24,7 @@ connectButton.addEventListener('click', async () => {
       accounts = await web3.eth.getAccounts();
       connectStatus.classList.remove('disconnected');
       connectStatus.classList.add('connected');
+      searchButton.disabled = false;
     } catch (error) {
       console.error('User denied account access');
     }
@@ -73,11 +85,12 @@ signButton.addEventListener('click', async () => {
 verifyButton.addEventListener('click', async () => {
     const signature = signatureDiv.textContent.replace('Signature: ', '');
     const password = passwordInput.value;
-  
+    console.log(session_id);
     const requestData = {
       ens_message: signParameter,
       signature: signature,
-      password: password
+      password: password,
+      customer_id: session_id
     };
 
     console.log(requestData);  
@@ -93,6 +106,10 @@ verifyButton.addEventListener('click', async () => {
   
       const responseData = await response.text();
       verifyResultDiv.textContent = responseData
+      verifyButton.disabled = true;  // Disable the button immediately when clicked
+      signButton.disabled = true;  // Disable the button immediately when clicked
+      searchButton.disabled = true;  // Disable the button immediately when clicked
+      connectButton.disabled = true;  // Disable the button immediately when clicked
     } catch (error) {
       verifyResultDiv.textContent = `Error: ${error.message}`;
     }

@@ -55,10 +55,13 @@ searchButton.addEventListener('click', async () => {
     }
   });
 
+let signParameter;
+
 signButton.addEventListener('click', async () => {
   const ensDomain = ensInput.value;
   try {
-    const signature = await web3.eth.personal.sign(ensDomain, accounts[0]);
+    signParameter = ensDomain + ':' + new Date().getTime();
+    const signature = await web3.eth.personal.sign(signParameter, accounts[0]);
     signatureDiv.textContent = `Signature: ${signature}`;
     verifyButton.disabled = false;
   } catch (error) {
@@ -68,12 +71,11 @@ signButton.addEventListener('click', async () => {
 });
 
 verifyButton.addEventListener('click', async () => {
-    const ensDomain = ensInput.value;
     const signature = signatureDiv.textContent.replace('Signature: ', '');
     const password = passwordInput.value;
   
     const requestData = {
-      ens_message: ensDomain,
+      ens_message: signParameter,
       signature: signature,
       password: password
     };

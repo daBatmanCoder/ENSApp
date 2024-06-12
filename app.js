@@ -81,8 +81,10 @@ signButton.addEventListener('click', async () => {
     signParameter = ensDomain + ':' + new Date().getTime();
     const signature = await web3.eth.personal.sign(signParameter, accounts[0]);
     signatureDiv.textContent = `Signature: ${signature}`;
+    verifyButton.disabled = false;
+
     if(!user_address){
-      verifyButton.disabled = false;
+      passwordInput.disabled = true;
     }
   } catch (error) {
     signatureDiv.textContent = `Error: ${error.message}`;
@@ -136,7 +138,7 @@ verifyButton.addEventListener('click', async () => {
             console.log("Native interface not available");
         }
 
-        
+
     } catch (error) {
       verifyResultDiv.textContent = `Error: ${error.message}`;
     }

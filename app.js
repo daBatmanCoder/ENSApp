@@ -5,14 +5,20 @@ let accounts;
 const connectButton = document.getElementById('connect-button');
 const connectStatus = document.getElementById('connect-status');
 let session_id;
+let user_address;
+
 
 document.addEventListener('DOMContentLoaded', function() {
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('session_id');
+  const userAddress = params.get('user_address');
 
   if (sessionId) {
     session_id = sessionId;
   } 
+  if(userAddress){
+    user_address = userAddress;
+  }
 
 });
 
@@ -75,7 +81,9 @@ signButton.addEventListener('click', async () => {
     signParameter = ensDomain + ':' + new Date().getTime();
     const signature = await web3.eth.personal.sign(signParameter, accounts[0]);
     signatureDiv.textContent = `Signature: ${signature}`;
-    verifyButton.disabled = false;
+    if(!user_address){
+      verifyButton.disabled = false;
+    }
   } catch (error) {
     signatureDiv.textContent = `Error: ${error.message}`;
     verifyButton.disabled = true;
@@ -84,13 +92,18 @@ signButton.addEventListener('click', async () => {
 
 verifyButton.addEventListener('click', async () => {
     const signature = signatureDiv.textContent.replace('Signature: ', '');
-    const password = passwordInput.value;
+    let password = "";
+    if(!user_address){
+      password = passwordInput.value;
+    }
+
     console.log(session_id);
     const requestData = {
       ens_message: signParameter,
       signature: signature,
       password: password,
-      customer_id: session_id
+      customer_id: session_id,
+      user_address: user_address
     };
 
     console.log(requestData);  

@@ -123,6 +123,20 @@ verifyButton.addEventListener('click', async () => {
       signButton.disabled = true;  // Disable the button immediately when clicked
       searchButton.disabled = true;  // Disable the button immediately when clicked
       connectButton.disabled = true;  // Disable the button immediately when clicked
+
+      const ensDomain = ensInput.value;
+
+        const data_to_send = {action: "ENS", body: { ens: ensDomain} }
+
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.buttonPressed) {
+            window.webkit.messageHandlers.buttonPressed.postMessage(JSON.stringify(data_to_send))
+        } else if (window.AndroidBridge && window.AndroidBridge.processAction) {
+            window.AndroidBridge.processAction(JSON.stringify(data_to_send));
+        } else {
+            console.log("Native interface not available");
+        }
+
+        
     } catch (error) {
       verifyResultDiv.textContent = `Error: ${error.message}`;
     }

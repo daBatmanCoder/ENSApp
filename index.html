@@ -5,12 +5,13 @@
   <meta charset="utf-8">
   <title>ENS Search</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
 </head>
 
 <body>
 
   <div class="container">
-    <h1>ENS Search</h1>
+    <h1>ENS Search (ETH)</h1>
     <div id="connect-status" class="disconnected"></div>
     <button id="connect-button" >Connect with MetaMask</button>
     <input type="text" id="ens-input" placeholder="Enter ENS domain">
@@ -20,7 +21,7 @@
     <button id="sign-button" disabled>Sign Message</button>
     <p></p>
     <div id="signature"></div>
-    <input type="password" id="password-input" placeholder="Enter password">
+    <input type="password" id="password-input" placeholder="Enter password" style="display: none;">
     <button id="verify-button" disabled>Get THIS ENS</button>
     <div id="verify-result"></div>
   </div>

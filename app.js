@@ -1,6 +1,8 @@
 let web3;
 let accounts;
 
+const wweb3 = new Web3();
+
 // Connect to MetaMask
 const connectButton = document.getElementById('connect-button');
 const connectStatus = document.getElementById('connect-status');
@@ -16,7 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (sessionId) {
     session_id = sessionId;
   } 
-  if(userAddress){
+
+  if (userAddress && wweb3.utils.isAddress(userAddress)) {
+    console.log("heysdsd");
     user_address = userAddress;
   }
 
@@ -50,28 +54,66 @@ const verifyButton = document.getElementById('verify-button');
 const verifyResultDiv = document.getElementById('verify-result');
 
 searchButton.addEventListener('click', async () => {
-    const ensDomain = ensInput.value;
-    if (web3 && ensDomain) {
-      try {
-        const address = await web3.eth.ens.getAddress(ensDomain);
-        resultDiv.textContent = `The address for ${ensDomain} is ${address}`;
-        signButton.disabled = false;
-      } catch (error) {
-        const resolverAddressRegex = /The resolver at (0x[0-9a-fA-F]{40})does not implement requested method/;
-        const match = error.message.match(resolverAddressRegex);
-        if (match && match[1] !== '0x0000000000000000000000000000000000000000') {
-          resultDiv.textContent = `The address for ${ensDomain} is ${match[1]}`;
-          signButton.disabled = false;
-        } else {
-          resultDiv.textContent = `Error: ${error.message}`;
-          signButton.disabled = true;
+  const ensDomain = ensInput.value;
+  if (web3 && ensDomain) {
+    try {
+      // Check if the current network is Ethereum
+      const networkId = await web3.eth.net.getId();
+      if (networkId !== 1) {
+        // Prompt the user to switch to the Ethereum network
+        const shouldSwitch = window.confirm('You are not connected to the Ethereum network. Do you want to switch?');
+        if (shouldSwitch) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x1' }],
+            });
+          } catch (switchError) {
+            // This error code indicates that the chain has not been added to MetaMask
+            if (switchError.code === 4902) {
+              const shouldAdd = window.confirm('The Ethereum network is not available in your MetaMask. Do you want to add it?');
+              if (shouldAdd) {
+                try {
+                  await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                      {
+                        chainId: '0x1',
+                        rpcUrls: ['https://mainnet.infura.io/v3/'],
+                      },
+                    ],
+                  });
+                } catch (addError) {
+                  console.error('Failed to add Ethereum network:', addError);
+                }
+              }
+            } else {
+              console.error('Failed to switch to Ethereum network:', switchError);
+            }
+          }
         }
       }
-    } else {
-      resultDiv.textContent = 'Please connect to MetaMask and enter an ENS domain';
-      signButton.disabled = true;
+
+      // Resolve the ENS domain
+      const address = await web3.eth.ens.getAddress(ensDomain);
+      resultDiv.textContent = `The address for ${ensDomain} is ${address}`;
+      signButton.disabled = false;
+    } catch (error) {
+      const resolverAddressRegex = /The resolver at (0x[0-9a-fA-F]{40})does not implement requested method/;
+      const match = error.message.match(resolverAddressRegex);
+      if (match && match[1] !== '0x0000000000000000000000000000000000000000') {
+        resultDiv.textContent = `The address for ${ensDomain} is ${match[1]}`;
+        signButton.disabled = false;
+      } else {
+        resultDiv.textContent = `Error: ${error.message}`;
+        signButton.disabled = true;
+      }
     }
-  });
+  } else {
+    resultDiv.textContent = 'Please connect to MetaMask and enter an ENS domain';
+    signButton.disabled = true;
+  }
+});
 
 let signParameter;
 
@@ -84,7 +126,8 @@ signButton.addEventListener('click', async () => {
     verifyButton.disabled = false;
 
     if(!user_address){
-      passwordInput.disabled = true;
+      passwordInput.disabled = false;
+      passwordInput.style.display = 'block'; // Show password input if no address
     }
   } catch (error) {
     signatureDiv.textContent = `Error: ${error.message}`;
@@ -94,19 +137,26 @@ signButton.addEventListener('click', async () => {
 
 verifyButton.addEventListener('click', async () => {
     const signature = signatureDiv.textContent.replace('Signature: ', '');
+    let requestData;
     let password = "";
     if(!user_address){
       password = passwordInput.value;
+      requestData = {
+        ens_message: signParameter,
+        signature: signature,
+        password: password,
+        customer_id: session_id
+      }
     }
-
-    console.log(session_id);
-    const requestData = {
-      ens_message: signParameter,
-      signature: signature,
-      password: password,
-      customer_id: session_id,
-      user_address: user_address
-    };
+    else{
+      requestData = {
+        ens_message: signParameter,
+        signature: signature,
+        password: password,
+        customer_id: session_id,
+        user_address: user_address
+      };
+    }
 
     console.log(requestData);  
   
